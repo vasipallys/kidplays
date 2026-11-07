@@ -7,10 +7,19 @@ export type StageState = {
   backdropId: string;
 };
 
+export type LearnMeta = {
+  subject: string;
+  subjectId: string;
+  band: string;
+  bandId: string;
+  practice: string;
+};
+
 export type Project = {
   id: string;
   name: string;
   description?: string;
+  learn?: LearnMeta;
   thumbnail?: string;
   createdAt: string;
   updatedAt: string;

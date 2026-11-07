@@ -7,6 +7,7 @@ import {
   listProjects,
   saveProject,
 } from '../storage/projectRepository';
+import { createLessonProject } from '../learn/buildLessonProject';
 import {
   createBlankProject,
   createSampleProject as buildSampleProject,
@@ -31,6 +32,7 @@ type ProjectState = {
   hydrateProjects: () => Promise<void>;
   createProject: (name?: string) => Promise<Project>;
   createSampleProject: (templateId: SampleProjectId) => Promise<Project>;
+  createLesson: (lessonId: string) => Promise<Project>;
   loadProject: (id: string) => Promise<Project | undefined>;
   saveCurrentProject: () => Promise<void>;
   importProject: (project: Project) => Promise<Project>;
@@ -78,6 +80,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   createSampleProject: async (templateId) => {
     const project = buildSampleProject(templateId);
+    await saveProject(project);
+    set((state) => ({
+      projects: [project, ...state.projects],
+      currentProject: project,
+      hasHydrated: true,
+    }));
+    return project;
+  },
+
+  createLesson: async (lessonId) => {
+    const project = createLessonProject(lessonId);
     await saveProject(project);
     set((state) => ({
       projects: [project, ...state.projects],

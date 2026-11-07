@@ -4,6 +4,7 @@ import {
   Blocks,
   Flag,
   HelpCircle,
+  Maximize2,
   Keyboard,
   MousePointer2,
   PanelLeft,
@@ -33,6 +34,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { HowToModal } from '../components/common/HowToModal';
 import { EditorTour } from '../components/common/EditorTour';
 import { Mascot } from '../components/common/Mascot';
+import { StagePopout } from '../components/stage/StagePopout';
 import { useProjectStore } from '../store/projectStore';
 import { useRuntimeStore } from '../store/runtimeStore';
 import { useUiStore, type EditorTab } from '../store/uiStore';
@@ -63,6 +65,7 @@ export function EditorPage() {
   const [nameDraft, setNameDraft] = useState('');
   const [spriteToDelete, setSpriteToDelete] = useState<Sprite | null>(null);
   const [notice, setNotice] = useState<string>();
+  const [stagePopout, setStagePopout] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -131,6 +134,7 @@ export function EditorPage() {
 
   const runProject = () => {
     showStageOnPhone();
+    setStagePopout(true);
     startGreenFlagRun(currentProject);
   };
   const stopProject = () => stopAllScripts();
@@ -181,14 +185,20 @@ export function EditorPage() {
               </button>
             )}
             <p className={`hidden text-xs font-extrabold sm:block ${storageError ? 'text-rose-600' : 'text-emerald-700'}`}>
-              {storageError ?? 'Saved on this device'}
+              {storageError ?? (currentProject.learn ? `${currentProject.learn.subject} · ${currentProject.learn.band}` : 'Saved on this device')}
             </p>
+            {currentProject.learn ? (
+              <p className="max-w-xl truncate text-xs font-bold text-sky-800">{currentProject.learn.practice}</p>
+            ) : null}
           </div>
           <IconButton label="How to play" icon={<HelpCircle size={22} />} onClick={() => setHowToOpen(true)} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Button tone="play" icon={<Flag size={20} />} onClick={runProject} disabled={status === 'running'} className="min-h-14 text-lg">
             Play
+          </Button>
+          <Button tone="secondary" icon={<Maximize2 size={18} />} onClick={() => setStagePopout(true)} className="min-h-14">
+            Big screen
           </Button>
           <Button tone="stop" icon={<Square size={18} />} onClick={stopProject} disabled={status !== 'running'} className="min-h-14 text-lg">
             Stop
@@ -310,16 +320,26 @@ export function EditorPage() {
                 <div className="mb-2 flex items-center justify-between">
                   <div>
                     <h2 className="font-display text-lg text-slate-800">The stage</h2>
-                    <p className="text-xs font-bold text-slate-500">This is the movie screen. Click a character!</p>
+                    <p className="text-xs font-bold text-slate-500">Press Play, then click a character to hear more.</p>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-extrabold ${
-                      status === 'running' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
-                    }`}
-                    aria-live="polite"
-                  >
-                    {status === 'running' ? 'Playing!' : 'Ready'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStagePopout(true)}
+                      className="inline-flex min-h-11 items-center gap-1 rounded-2xl bg-sky-600 px-3 text-sm font-extrabold text-white"
+                    >
+                      <Maximize2 size={16} />
+                      Big screen
+                    </button>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-extrabold ${
+                        status === 'running' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
+                      }`}
+                      aria-live="polite"
+                    >
+                      {status === 'running' ? 'Playing!' : 'Ready'}
+                    </span>
+                  </div>
                 </div>
                 <div
                   className={`rounded-[1.4rem] p-1 ${
@@ -378,6 +398,15 @@ export function EditorPage() {
         <TabButton tab="cast" current={editorTab} label="Characters" icon={<Star size={18} />} onClick={setEditorTab} />
       </nav>
 
+      <StagePopout
+        open={stagePopout}
+        title={currentProject.name}
+        playing={status === 'running'}
+        project={currentProject}
+        onClose={() => setStagePopout(false)}
+        onStop={stopProject}
+        onSpriteClick={(spriteId) => startSpriteClickRun(currentProject, spriteId)}
+      />
       <HowToModal open={howToOpen} onClose={() => setHowToOpen(false)} />
       <EditorTour
         open={tourOpen}

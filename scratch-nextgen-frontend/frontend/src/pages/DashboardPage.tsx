@@ -1,15 +1,21 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
+  Atom,
   BookOpen,
+  Brain,
+  Calculator,
   CircleDot,
   Copy,
   Download,
   Eye,
   FilePlus2,
+  FlaskConical,
   FolderOpen,
+  Globe2,
   HelpCircle,
   Keyboard,
+  Leaf,
   Music2,
   Pencil,
   Play,
@@ -32,6 +38,7 @@ import { useProjectStore } from '../store/projectStore';
 import { downloadProjectJson, readProjectFile } from '../storage/importExport';
 import { formatFriendlyDate } from '../utils/time';
 import { funProjectNames, hasSeenWelcome, markWelcomeSeen } from '../utils/kidPrefs';
+import { gradeBands, lessonsFor, subjects, type BandId, type SubjectId } from '../learn/catalog';
 import { sampleProjectTemplates, type SampleProjectId } from '../templates/sampleProjects';
 import type { Project } from '../types/project';
 
@@ -41,6 +48,8 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState('');
+  const [subject, setSubject] = useState<SubjectId | 'all'>('all');
+  const [band, setBand] = useState<BandId>('3-5');
   const [banner, setBanner] = useState<string>();
   const [howToOpen, setHowToOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -53,6 +62,7 @@ export function DashboardPage() {
     hydrateProjects,
     createProject,
     createSampleProject,
+    createLesson,
     duplicateProject,
     deleteProject,
     renameProject,
@@ -87,6 +97,17 @@ export function DashboardPage() {
       openCreated(project);
     } catch {
       setBanner('Could not create a project. Check that this browser can save files.');
+    }
+  };
+
+  const practiceLessons = useMemo(() => lessonsFor(subject, band), [subject, band]);
+
+  const createLessonAndOpen = async (lessonId: string) => {
+    try {
+      const project = await createLesson(lessonId);
+      openCreated(project);
+    } catch {
+      setBanner('Could not open this practice lab. Check that this browser can save files.');
     }
   };
 
@@ -130,7 +151,7 @@ export function DashboardPage() {
                   Let's make something cool
                 </h1>
                 <p className="mt-3 max-w-2xl text-lg font-bold leading-relaxed text-slate-600">
-                  Snap colorful blocks. Press Play. Watch games, stories, and dances come to life.
+                  Snap blocks and press Play. Make a story, or practise maths, science, English, and logic for your class.
                 </p>
               </div>
             </div>
@@ -170,6 +191,32 @@ export function DashboardPage() {
             {banner ?? storageError}
           </div>
         ) : null}
+
+        <section className="mt-8" aria-labelledby="practice-heading">
+          <div className="mb-4">
+            <p className="text-sm font-extrabold uppercase tracking-wider text-violet-700">Practice lab</p>
+            <h2 id="practice-heading" className="font-display text-3xl text-slate-950">Learn by pressing Play</h2>
+            <p className="mt-1 max-w-3xl text-sm font-bold text-slate-600">
+              Pick your class, then a subject. The coach talks through one true problem and shows it on the stage. Change a number and run it again. This is practice, not a school exam.
+            </p>
+          </div>
+          <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Class">
+            {gradeBands.map((item) => (
+              <FilterChip key={item.id} pressed={band === item.id} onClick={() => setBand(item.id)} label={item.label} />
+            ))}
+          </div>
+          <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Subject">
+            <FilterChip pressed={subject === 'all'} onClick={() => setSubject('all')} label="All subjects" />
+            {subjects.map((item) => (
+              <FilterChip key={item.id} pressed={subject === item.id} onClick={() => setSubject(item.id)} label={item.label} />
+            ))}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {practiceLessons.map((lesson, index) => (
+              <LessonCard key={lesson.id} lesson={lesson} index={index} onClick={() => void createLessonAndOpen(lesson.id)} />
+            ))}
+          </div>
+        </section>
 
         <section className="mt-8">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
@@ -316,6 +363,69 @@ export function DashboardPage() {
         }}
       />
     </main>
+  );
+}
+
+function FilterChip({ pressed, onClick, label }: { pressed: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={`min-h-11 rounded-full px-4 text-sm font-extrabold ${
+        pressed ? 'bg-violet-600 text-white' : 'bg-white text-slate-700 shadow-sm hover:bg-violet-50'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+const subjectIcons: Record<SubjectId, LucideIcon> = {
+  maths: Calculator,
+  physics: Atom,
+  chemistry: FlaskConical,
+  biology: Leaf,
+  english: BookOpen,
+  earth: Globe2,
+  logic: Brain,
+};
+
+function LessonCard({
+  lesson,
+  index,
+  onClick,
+}: {
+  lesson: ReturnType<typeof lessonsFor>[number];
+  index: number;
+  onClick: () => void;
+}) {
+  const Icon = subjectIcons[lesson.subject];
+  const subjectName = subjects.find((item) => item.id === lesson.subject)?.label ?? lesson.subject;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className="rounded-[1.6rem] border-4 border-white bg-white p-4 text-left shadow-soft transition hover:-translate-y-1 hover:shadow-xl"
+    >
+      <span className="flex items-center gap-3">
+        <span className="rounded-2xl p-3 text-white" style={{ backgroundColor: lesson.color }}>
+          <Icon size={22} />
+        </span>
+        <span>
+          <span className="block text-xs font-extrabold uppercase tracking-wide text-slate-500">{subjectName}</span>
+          <span className="block font-display text-xl text-slate-900">{lesson.title}</span>
+        </span>
+      </span>
+      <span className="mt-3 block text-sm font-semibold leading-snug text-slate-600">{lesson.ask}</span>
+      <span className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-violet-700">
+        <Play size={14} /> Practise
+      </span>
+    </motion.button>
   );
 }
 

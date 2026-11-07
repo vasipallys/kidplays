@@ -6,5 +6,9 @@ type ProvidersProps = {
 };
 
 export function Providers({ children }: ProvidersProps) {
-  return <HashRouter>{children}</HashRouter>;
+  return (
+    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      {children}
+    </HashRouter>
+  );
 }

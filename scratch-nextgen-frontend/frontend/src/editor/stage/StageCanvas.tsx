@@ -116,6 +116,13 @@ function drawStage(
 
     drawSprite(context, sprite, imageCache, requestRedraw);
   });
+
+  const lines = project.sprites
+    .filter((sprite) => sprite.visible && sprite.speech?.text)
+    .map((sprite) => sprite.speech?.text ?? '');
+  if (lines.length > 0) {
+    drawCaption(context, lines);
+  }
 }
 
 function drawSprite(
@@ -155,24 +162,69 @@ function drawSprite(
 }
 
 function drawSpeech(context: CanvasRenderingContext2D, x: number, y: number, text: string): void {
-  const width = Math.min(210, Math.max(84, text.length * 8 + 28));
-  const height = 42;
+  context.save();
+  context.font = '700 15px Nunito, Inter, system-ui, sans-serif';
+  const maxWidth = 250;
+  const lines = wrapText(context, text, maxWidth).slice(0, 4);
+  const width = Math.min(280, Math.max(96, ...lines.map((line) => context.measureText(line).width)) + 24);
+  const height = lines.length * 20 + 16;
   const left = Math.min(STAGE_WIDTH - width - 8, Math.max(8, x - width / 2));
   const top = Math.max(8, y - height);
 
-  context.save();
   context.fillStyle = '#FFFFFF';
-  context.strokeStyle = '#CBD5E1';
-  context.lineWidth = 2;
-  roundRect(context, left, top, width, height, 12);
+  context.strokeStyle = '#0F172A';
+  context.lineWidth = 3;
+  roundRect(context, left, top, width, height, 14);
   context.fill();
   context.stroke();
-  context.fillStyle = '#111827';
-  context.font = '600 14px Inter, system-ui, sans-serif';
+  context.fillStyle = '#0F172A';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText(text.slice(0, 28), left + width / 2, top + height / 2);
+  lines.forEach((line, index) => {
+    context.fillText(line, left + width / 2, top + 18 + index * 20);
+  });
   context.restore();
+}
+
+function drawCaption(context: CanvasRenderingContext2D, messages: string[]): void {
+  context.save();
+  context.font = '800 16px Nunito, Inter, system-ui, sans-serif';
+  const lines = messages.flatMap((message) => wrapText(context, message, STAGE_WIDTH - 36)).slice(0, 3);
+  const height = lines.length * 22 + 18;
+  const top = STAGE_HEIGHT - height - 8;
+
+  context.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  roundRect(context, 8, top, STAGE_WIDTH - 16, height, 16);
+  context.fill();
+  context.fillStyle = '#FFFFFF';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  lines.forEach((line, index) => {
+    context.fillText(line, STAGE_WIDTH / 2, top + 16 + index * 22);
+  });
+  context.restore();
+}
+
+function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = '';
+
+  words.forEach((word) => {
+    const trial = line ? `${line} ${word}` : word;
+    if (line && context.measureText(trial).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = trial;
+    }
+  });
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines.length > 0 ? lines : [''];
 }
 
 function roundRect(
