@@ -57,6 +57,7 @@ Each sample is copied into My projects, so kids can change it safely.
 - Create, open, rename, duplicate, delete, import, and export projects
 - IndexedDB storage through Dexie (`ScratchNextGenDatabase`)
 - Editor with Play / Stop / Reset / Save
+- Docked menus: Code, Looks, and Sounds tabs; stage and characters stay on the right
 - Phone and tablet tabs: Code, Stage, Characters
 - Blockly workspace (Zelos renderer) with Events, Motion, Looks, Sound, Loops, Sensing, Variables
 - Safe TypeScript interpreter that reads Blockly XML and maps blocks to controlled actions

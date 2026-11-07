@@ -19,7 +19,8 @@ Open [http://localhost:5173](http://localhost:5173). On Windows you can also run
 1. Tap a sample (Dance Party is a good first try).
 2. Snap blocks. Yellow starts, blue moves, purple talks, orange repeats.
 3. Press the green **Play** button and watch the stage.
-4. On a phone, use **Code**, **Stage**, and **Characters** at the bottom.
+4. On a computer, **Code**, **Looks**, and **Sounds** are tabs. The stage stays docked on the right with your characters under it.
+5. On a phone, use **Code**, **Stage**, and **Characters** at the bottom.
 
 Buddy (the orange mascot) gives short tips. Projects save in this browser. Use **Download a copy** before switching computers.
 

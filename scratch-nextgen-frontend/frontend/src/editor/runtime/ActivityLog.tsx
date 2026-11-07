@@ -4,10 +4,10 @@ type ActivityLogProps = {
 
 export function ActivityLog({ lines }: ActivityLogProps) {
   return (
-    <section className="rounded-3xl border-2 border-slate-100 bg-white p-3">
-      <h2 className="mb-2 font-display text-base text-slate-800">What just happened</h2>
+    <details className="rounded-2xl border-2 border-slate-100 bg-white p-3">
+      <summary className="cursor-pointer font-display text-base text-slate-800">What just happened</summary>
       <div
-        className="max-h-40 space-y-1.5 overflow-y-auto rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-700"
+        className="mt-2 max-h-32 space-y-1.5 overflow-y-auto rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-700"
         role="log"
         aria-live="polite"
       >
@@ -21,6 +21,6 @@ export function ActivityLog({ lines }: ActivityLogProps) {
           ))
         )}
       </div>
-    </section>
+    </details>
   );
 }
