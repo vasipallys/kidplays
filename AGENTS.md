@@ -48,8 +48,10 @@ The runtime does **not** execute Blockly or generated JavaScript. Instead:
 
 ### Supporting pieces
 - `src/editor/sprites/`, `src/editor/stage/StageCanvas.tsx`, `src/editor/assets/` (image/sound upload + validation) are the editor UI panels.
-- `src/editor/codeBuddy/` is a **rule-based** (not AI) helper: `rules.ts`/`suggestions.ts` pattern-match the project and emit kid-friendly tips.
+- `src/editor/codeBuddy/` is a **rule-based** (not AI) helper: `rules.ts`/`suggestions.ts` pattern-match the project and emit kid-friendly tips. The orange mascot is `src/components/common/Mascot.tsx`.
 - `src/templates/` seeds blank projects and starter sprites.
+- Kid-facing chrome lives in `src/pages/` plus `src/components/ui/` (`Modal`, `NameDialog`, `ConfirmDialog`) and `src/components/common/` (`HowToModal`, `EditorTour`). Phone/tablet editor tabs are `editorTab` in `src/store/uiStore.ts`. Do not reintroduce `window.prompt` / `window.confirm` for rename, delete, or create.
+- Blockly media files live in `frontend/public/blockly-media/` so zoom, trash, and click sounds work offline. Keep `Blockly.inject({ media })` pointed at that folder.
 
 ## Conventions
 - Keep the app frontend-only and offline-capable; persistence is IndexedDB + portable JSON export.

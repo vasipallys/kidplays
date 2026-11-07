@@ -14,11 +14,11 @@ const runTrackers = new Map<number, { activeGroups: number; logProjectFinished: 
 export function startGreenFlagRun(project: Project): void {
   stopSounds();
   runTrackers.clear();
-  const runToken = useRuntimeStore.getState().startRun('Green flag started the project.');
+  const runToken = useRuntimeStore.getState().startRun('Play started the project!');
   const scripts = collectScripts(project, 'greenFlag');
 
   if (scripts.length === 0) {
-    useRuntimeStore.getState().addLog('Add a green flag block to start.');
+    useRuntimeStore.getState().addLog('Add a yellow when green flag clicked block, then press Play.');
     useRuntimeStore.getState().finishRun(runToken);
     return;
   }
@@ -36,7 +36,7 @@ export function startSpriteClickRun(project: Project, spriteId: string): void {
   const scripts = collectScripts(project, 'spriteClick').filter((script) => script.spriteId === spriteId);
 
   if (scripts.length === 0) {
-    useRuntimeStore.getState().addLog('That sprite has no click script yet.');
+    useRuntimeStore.getState().addLog('This character has no click blocks yet. Add when this sprite clicked.');
     return;
   }
 
@@ -265,7 +265,7 @@ function finishExecutionGroup(runToken: number): void {
   }
 
   if (tracker.logProjectFinished) {
-    useRuntimeStore.getState().addLog('Project finished.');
+    useRuntimeStore.getState().addLog('All done! Press Play to try again.');
   }
   useRuntimeStore.getState().finishRun(runToken);
 }
@@ -287,7 +287,7 @@ function playSpriteSound(spriteId: string, soundName: string): void {
   const sound = sprite?.sounds.find((item) => item.name.toLowerCase() === soundName.toLowerCase()) ?? sprite?.sounds[0];
 
   if (!sound) {
-    useRuntimeStore.getState().addLog('No local sound is attached to this sprite yet.');
+    useRuntimeStore.getState().addLog('This character has no sound yet. Add one under Characters.');
     return;
   }
 

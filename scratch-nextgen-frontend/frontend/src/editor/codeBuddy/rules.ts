@@ -18,7 +18,7 @@ export function getCodeBuddyHints(project: Project, spriteId: string, selectedBl
 
   if (!sprite.blocksXml.includes('event_when_green_flag')) {
     hints.push({
-      title: 'Starter idea',
+      title: 'Need a starter?',
       body: starterSuggestions[0],
     });
   }
@@ -32,15 +32,15 @@ export function getCodeBuddyHints(project: Project, spriteId: string, selectedBl
 
   if (!sprite.visible) {
     hints.push({
-      title: 'Sprite is hidden',
-      body: 'Your sprite is hidden. Use the Show block or turn Visible back on.',
+      title: 'Character is hiding',
+      body: 'This character is hidden. Use the Show block, or tap Show on the character card.',
     });
   }
 
   if (Math.abs(sprite.x) > 220 || Math.abs(sprite.y) > 160) {
     hints.push({
       title: 'Near the edge',
-      body: 'Your sprite is close to the edge. Try Go to x 0 y 0 or If on edge, bounce.',
+      body: 'Your character is close to the edge. Try Go to x 0 y 0, or If on edge, bounce.',
     });
   }
 
@@ -54,8 +54,8 @@ export function getCodeBuddyHints(project: Project, spriteId: string, selectedBl
 
   if (hints.length === 1) {
     hints.push({
-      title: 'Nice start',
-      body: 'Great job. Try changing a number in a block and run it again.',
+      title: 'You are doing great',
+      body: 'Try changing a number in a block, then press Play again.',
     });
   }
 
