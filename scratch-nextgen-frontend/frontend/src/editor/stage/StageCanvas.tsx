@@ -80,8 +80,8 @@ export function StageCanvas({ project, onSpriteClick }: StageCanvasProps) {
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="button"
-      className="aspect-[4/3] w-full cursor-pointer rounded-2xl border-4 border-white bg-sky-100 shadow-soft"
-      aria-label="Project stage. Click a sprite to run its click script."
+      className="aspect-[4/3] w-full cursor-pointer rounded-3xl border-4 border-white bg-sky-100 shadow-soft"
+      aria-label="Project stage. Click a character to run its click blocks."
     />
   );
 }

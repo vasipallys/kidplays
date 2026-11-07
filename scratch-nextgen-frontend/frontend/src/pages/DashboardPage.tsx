@@ -8,7 +8,7 @@ import {
   Eye,
   FilePlus2,
   FolderOpen,
-  Import,
+  HelpCircle,
   Keyboard,
   Music2,
   Pencil,
@@ -16,24 +16,36 @@ import {
   Rocket,
   Search,
   SearchX,
-  Sparkles,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { IconButton } from '../components/ui/IconButton';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { NameDialog } from '../components/ui/NameDialog';
 import { EmptyState } from '../components/common/EmptyState';
+import { HowToModal } from '../components/common/HowToModal';
+import { Mascot } from '../components/common/Mascot';
 import { useProjectStore } from '../store/projectStore';
 import { downloadProjectJson, readProjectFile } from '../storage/importExport';
 import { formatFriendlyDate } from '../utils/time';
+import { funProjectNames, hasSeenWelcome, markWelcomeSeen } from '../utils/kidPrefs';
 import { sampleProjectTemplates, type SampleProjectId } from '../templates/sampleProjects';
 import type { Project } from '../types/project';
+
+type PendingDelete = { id: string; name: string };
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState('');
+  const [banner, setBanner] = useState<string>();
+  const [howToOpen, setHowToOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PendingDelete | null>(null);
   const {
     projects,
     hasHydrated,
@@ -53,27 +65,37 @@ export function DashboardPage() {
     }
   }, [hasHydrated, hydrateProjects]);
 
+  useEffect(() => {
+    if (!hasSeenWelcome()) {
+      setHowToOpen(true);
+    }
+  }, []);
+
   const visibleProjects = useMemo(() => {
     const lower = query.toLowerCase().trim();
     return projects.filter((project) => project.name.toLowerCase().includes(lower));
   }, [projects, query]);
   const hasSearchQuery = query.trim().length > 0;
 
+  const openCreated = (project: Project) => {
+    navigate(`/editor/${project.id}`);
+  };
+
   const createAndOpen = async (name?: string) => {
     try {
       const project = await createProject(name);
-      navigate(`/editor/${project.id}`);
+      openCreated(project);
     } catch {
-      window.alert('Could not create a project. Check that browser storage is available.');
+      setBanner('Could not create a project. Check that this browser can save files.');
     }
   };
 
   const createSampleAndOpen = async (templateId: SampleProjectId) => {
     try {
       const project = await createSampleProject(templateId);
-      navigate(`/editor/${project.id}`);
+      openCreated(project);
     } catch {
-      window.alert('Could not create this sample. Check that browser storage is available.');
+      setBanner('Could not open this sample. Check that this browser can save files.');
     }
   };
 
@@ -89,104 +111,122 @@ export function DashboardPage() {
       await importProject(project);
       navigate(`/editor/${project.id}`);
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : 'Could not import this project.');
+      setBanner(error instanceof Error ? error.message : 'Could not open that project file.');
     }
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#DDF4FF_0,#F8FAFC_42%,#FCE7F3_100%)] px-4 py-6 sm:px-6 sm:py-8">
+    <main className="min-h-screen px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-7xl">
-        <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white bg-white/90 px-4 py-2 text-sm font-black text-sky-700 shadow-sm backdrop-blur">
-              <Sparkles size={17} />
-              Local-first kid coding
+        <header className="overflow-hidden rounded-[2rem] border-4 border-white bg-white/80 p-5 shadow-soft sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <Mascot size={96} mood="cheer" className="hidden shrink-0 animate-kid-float sm:block" />
+              <div>
+                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-extrabold text-amber-800">
+                  For kids 6–18 · stays on this device
+                </p>
+                <h1 className="font-display text-4xl tracking-tight text-slate-950 sm:text-5xl md:text-6xl">
+                  Let's make something cool
+                </h1>
+                <p className="mt-3 max-w-2xl text-lg font-bold leading-relaxed text-slate-600">
+                  Snap colorful blocks. Press Play. Watch games, stories, and dances come to life.
+                </p>
+              </div>
             </div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl md:text-6xl">Scratch NextGen</h1>
-            <p className="mt-3 max-w-2xl text-base font-semibold leading-relaxed text-slate-600 sm:text-lg">
-              Build animations, games, and stories with colorful blocks. Your work stays safely on this device.
-            </p>
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
+              <Button tone="play" icon={<FilePlus2 size={20} />} onClick={() => setCreateOpen(true)} className="w-full">
+                New project
+              </Button>
+              <Button
+                tone="secondary"
+                icon={<Upload size={20} />}
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full"
+              >
+                Open a file
+              </Button>
+              <Button
+                tone="sun"
+                icon={<HelpCircle size={20} />}
+                onClick={() => setHowToOpen(true)}
+                className="w-full sm:col-span-2"
+              >
+                How does this work?
+              </Button>
+              <input ref={fileInputRef} type="file" accept=".json" className="sr-only" onChange={handleImport} />
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:flex md:flex-wrap">
-            <Button tone="success" icon={<FilePlus2 size={18} />} onClick={() => void createAndOpen()} className="w-full md:w-auto">
-              New project
-            </Button>
-            <Button tone="secondary" icon={<Import size={18} />} onClick={() => fileInputRef.current?.click()} className="w-full md:w-auto">
-              Import JSON
-            </Button>
-            <input ref={fileInputRef} type="file" accept=".json" className="sr-only" onChange={handleImport} />
-          </div>
+
+          <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+            <HowStep n={1} title="Pick a sample" body="Start with a ready-made project. You can change everything." />
+            <HowStep n={2} title="Snap blocks" body="Yellow starts. Blue moves. Purple talks. Orange repeats." />
+            <HowStep n={3} title="Press Play" body="Watch the stage. Change a number, then try again." />
+          </ol>
         </header>
 
-        {storageError ? (
-          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 font-semibold text-rose-800" role="alert">
-            {storageError}
+        {storageError || banner ? (
+          <div className="mt-6 rounded-3xl border-2 border-rose-200 bg-rose-50 px-4 py-3 font-bold text-rose-800" role="alert">
+            {banner ?? storageError}
           </div>
         ) : null}
 
-        <section className="mt-10 rounded-3xl border border-white/80 bg-white/60 p-3 shadow-sm backdrop-blur sm:p-4">
-          <label className="relative block">
-            <span className="sr-only">Search projects by name</span>
-            <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search your projects"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-base font-semibold text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400"
-            />
-          </label>
-
-          <div className="mt-4 border-t border-white pt-4">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 className="text-base font-black text-slate-900">Start with a real sample</h2>
-                <p className="text-sm font-semibold text-slate-500">Each one teaches a different block-coding idea.</p>
-              </div>
-              <span className="text-xs font-black uppercase tracking-wider text-sky-700">6 ready-to-run projects</span>
+        <section className="mt-8">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="text-sm font-extrabold uppercase tracking-wider text-sky-700">Try a sample</p>
+              <h2 className="font-display text-3xl text-slate-950">Ready-to-play projects</h2>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              {sampleProjectTemplates.map((template) => (
-                <SampleButton
-                  key={template.id}
-                  template={template}
-                  onClick={() => void createSampleAndOpen(template.id)}
-                />
-              ))}
-            </div>
+            <p className="text-sm font-bold text-slate-500">Tap one. Then press the green Play button.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {sampleProjectTemplates.map((template, index) => (
+              <SampleCard
+                key={template.id}
+                template={template}
+                index={index}
+                onClick={() => void createSampleAndOpen(template.id)}
+              />
+            ))}
           </div>
         </section>
 
-        <section className="mt-8" aria-labelledby="projects-heading">
-          <div className="mb-4 flex items-end justify-between gap-4">
+        <section className="mt-10" aria-labelledby="projects-heading">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-700">Your creations</p>
-              <h2 id="projects-heading" className="mt-1 text-2xl font-black tracking-tight text-slate-950">
+              <p className="text-sm font-extrabold uppercase tracking-wider text-sky-700">Your creations</p>
+              <h2 id="projects-heading" className="font-display text-3xl tracking-tight text-slate-950">
                 My projects
               </h2>
             </div>
-            {hasHydrated && projects.length > 0 ? (
-              <p className="shrink-0 text-sm font-bold text-slate-500">
-                {visibleProjects.length} {visibleProjects.length === 1 ? 'project' : 'projects'}
-              </p>
-            ) : null}
+            <label className="relative block w-full sm:max-w-xs">
+              <span className="sr-only">Search projects by name</span>
+              <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Find a project"
+                className="h-12 w-full rounded-2xl border-2 border-white bg-white pl-12 pr-4 text-base font-bold text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400"
+              />
+            </label>
           </div>
 
           {!hasHydrated ? (
             <LoadingProjects />
           ) : visibleProjects.length === 0 ? (
             <EmptyState
-              icon={hasSearchQuery ? <SearchX size={30} /> : <FolderOpen size={30} />}
-              title={hasSearchQuery ? 'No matching projects' : 'Make your first project'}
+              icon={hasSearchQuery ? <SearchX size={34} /> : <FolderOpen size={34} />}
+              title={hasSearchQuery ? 'No matching projects' : 'Your first project is waiting'}
               body={
                 hasSearchQuery
-                  ? `Nothing matches "${query.trim()}". Try another name or clear the search.`
-                  : 'Start with a blank canvas, or import a project you made earlier.'
+                  ? `Nothing matches “${query.trim()}”. Try another name, or clear the search.`
+                  : 'Start with a blank page, pick a sample above, or open a project file you saved earlier.'
               }
               action={
                 <Button
-                  tone={hasSearchQuery ? 'secondary' : 'success'}
+                  tone={hasSearchQuery ? 'secondary' : 'play'}
                   icon={hasSearchQuery ? <SearchX size={18} /> : <FilePlus2 size={18} />}
-                  onClick={() => (hasSearchQuery ? setQuery('') : void createAndOpen())}
+                  onClick={() => (hasSearchQuery ? setQuery('') : setCreateOpen(true))}
                 >
                   {hasSearchQuery ? 'Clear search' : 'Create first project'}
                 </Button>
@@ -207,28 +247,85 @@ export function DashboardPage() {
                         navigate(`/editor/${copy.id}`);
                       }
                     } catch {
-                      window.alert('Could not duplicate this project.');
+                      setBanner('Could not make a copy of this project.');
                     }
                   }}
-                  onDelete={() => {
-                    if (window.confirm(`Delete "${project.name}"?`)) {
-                      void deleteProject(project.id).catch(() => window.alert('Could not delete this project.'));
-                    }
-                  }}
-                  onRename={() => {
-                    const name = window.prompt('Project name', project.name);
-                    if (name) {
-                      void renameProject(project.id, name).catch(() => window.alert('Could not rename this project.'));
-                    }
-                  }}
+                  onDelete={() => setDeleteTarget({ id: project.id, name: project.name })}
+                  onRename={() => setRenameTarget(project)}
                   onExport={() => downloadProjectJson(project)}
                 />
               ))}
             </div>
           )}
         </section>
+
+        <footer className="mt-12 rounded-3xl bg-white/70 px-5 py-4 text-center text-sm font-bold text-slate-500">
+          No account. No internet needed after this page loads. Grown-ups: projects are saved in this browser only.
+        </footer>
       </div>
+
+      <HowToModal
+        open={howToOpen}
+        onClose={() => {
+          markWelcomeSeen();
+          setHowToOpen(false);
+        }}
+      />
+      <NameDialog
+        open={createOpen}
+        title="Name your project"
+        label="What should we call it?"
+        initialValue="Untitled Adventure"
+        confirmLabel="Start creating"
+        suggestions={funProjectNames}
+        onCancel={() => setCreateOpen(false)}
+        onSubmit={(name) => {
+          setCreateOpen(false);
+          void createAndOpen(name);
+        }}
+      />
+      <NameDialog
+        open={Boolean(renameTarget)}
+        title="Rename project"
+        label="New name"
+        initialValue={renameTarget?.name ?? ''}
+        confirmLabel="Save name"
+        onCancel={() => setRenameTarget(null)}
+        onSubmit={(name) => {
+          const id = renameTarget?.id;
+          setRenameTarget(null);
+          if (id) {
+            void renameProject(id, name).catch(() => setBanner('Could not rename this project.'));
+          }
+        }}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={`Delete ${deleteTarget?.name ?? 'this project'}?`}
+        body="This cannot be undone. If you might want it later, download a copy first."
+        confirmLabel="Delete"
+        cancelLabel="Keep it"
+        danger
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const id = deleteTarget?.id;
+          setDeleteTarget(null);
+          if (id) {
+            void deleteProject(id).catch(() => setBanner('Could not delete this project.'));
+          }
+        }}
+      />
     </main>
+  );
+}
+
+function HowStep({ n, title, body }: { n: number; title: string; body: string }) {
+  return (
+    <li className="rounded-2xl bg-sky-50 px-4 py-3">
+      <p className="text-sm font-extrabold text-sky-700">Step {n}</p>
+      <p className="font-display text-lg text-slate-900">{title}</p>
+      <p className="text-sm font-semibold text-slate-600">{body}</p>
+    </li>
   );
 }
 
@@ -253,13 +350,14 @@ function ProjectCard({
 }: ProjectCardProps) {
   const sprite = project.sprites[0];
   const costume = sprite?.costumes.find((item) => item.id === sprite.currentCostumeId) ?? sprite?.costumes[0];
+  const characterLabel = project.sprites.length === 1 ? '1 character' : `${project.sprites.length} characters`;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index, 8) * 0.04 }}
-      className="group overflow-hidden rounded-3xl border border-white/90 bg-white shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-xl"
+      className="group overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-xl"
     >
       <button type="button" onClick={onOpen} className="block w-full text-left" aria-label={`Open ${project.name}`}>
         <div className="flex h-40 items-center justify-center bg-gradient-to-br from-sky-200 via-white to-pink-100 sm:h-48">
@@ -275,62 +373,79 @@ function ProjectCard({
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-black text-slate-900">{project.name}</h2>
-            <p className="mt-0.5 text-sm font-semibold text-slate-500">Edited {formatFriendlyDate(project.updatedAt)}</p>
+            <h2 className="truncate font-display text-2xl text-slate-900">{project.name}</h2>
+            <p className="mt-0.5 text-sm font-bold text-slate-500">Edited {formatFriendlyDate(project.updatedAt)}</p>
           </div>
-          <Button tone="success" icon={<Play size={16} />} onClick={onOpen} className="px-3">
+          <Button tone="play" icon={<Play size={16} />} onClick={onOpen} className="px-3">
             Open
           </Button>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 text-sm font-semibold text-slate-600">
-          <div className="rounded-xl bg-slate-100 px-3 py-2">
-            {project.sprites.length} {project.sprites.length === 1 ? 'sprite' : 'sprites'}
-          </div>
-          <div className="rounded-xl bg-slate-100 px-3 py-2">Version {project.version}</div>
+        <div className="mt-4 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-extrabold text-slate-600">
+          {characterLabel}
         </div>
         <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
-          <IconButton label="Rename" icon={<Pencil size={17} />} onClick={onRename} />
-          <IconButton label="Duplicate" icon={<Copy size={17} />} onClick={onDuplicate} />
-          <IconButton label="Export JSON" icon={<Download size={17} />} onClick={onExport} />
-          <IconButton label="Delete" icon={<Trash2 size={17} />} onClick={onDelete} className="text-rose-600" />
+          <IconButton label="Rename" icon={<Pencil size={18} />} onClick={onRename} />
+          <IconButton label="Make a copy" icon={<Copy size={18} />} onClick={onDuplicate} />
+          <IconButton label="Download a copy" icon={<Download size={18} />} onClick={onExport} />
+          <IconButton label="Delete" icon={<Trash2 size={18} />} onClick={onDelete} className="text-rose-600" />
         </div>
       </div>
     </motion.article>
   );
 }
 
-type SampleButtonProps = {
+type SampleCardProps = {
   template: (typeof sampleProjectTemplates)[number];
+  index: number;
   onClick: () => void;
 };
 
-const sampleVisuals: Record<SampleProjectId, { icon: LucideIcon; className: string }> = {
-  'dance-party': { icon: Music2, className: 'bg-pink-100 text-pink-700' },
-  'space-chase': { icon: Rocket, className: 'bg-indigo-100 text-indigo-700' },
-  'tiny-story': { icon: BookOpen, className: 'bg-amber-100 text-amber-700' },
-  'bounce-lab': { icon: CircleDot, className: 'bg-cyan-100 text-cyan-700' },
-  'hide-and-seek': { icon: Eye, className: 'bg-emerald-100 text-emerald-700' },
-  'keyboard-quest': { icon: Keyboard, className: 'bg-sky-100 text-sky-700' },
+const sampleVisuals: Record<SampleProjectId, { icon: LucideIcon; className: string; stage: string }> = {
+  'dance-party': { icon: Music2, className: 'bg-pink-100 text-pink-700', stage: 'from-pink-200 to-amber-100' },
+  'space-chase': { icon: Rocket, className: 'bg-indigo-100 text-indigo-700', stage: 'from-indigo-200 to-sky-100' },
+  'tiny-story': { icon: BookOpen, className: 'bg-amber-100 text-amber-700', stage: 'from-amber-200 to-orange-100' },
+  'bounce-lab': { icon: CircleDot, className: 'bg-cyan-100 text-cyan-700', stage: 'from-cyan-200 to-emerald-100' },
+  'hide-and-seek': { icon: Eye, className: 'bg-emerald-100 text-emerald-700', stage: 'from-emerald-200 to-lime-100' },
+  'keyboard-quest': { icon: Keyboard, className: 'bg-sky-100 text-sky-700', stage: 'from-sky-200 to-violet-100' },
 };
 
-function SampleButton({ template, onClick }: SampleButtonProps) {
+const levelStyles: Record<string, string> = {
+  Easy: 'bg-emerald-100 text-emerald-800',
+  Fun: 'bg-amber-100 text-amber-800',
+  Challenge: 'bg-violet-100 text-violet-800',
+};
+
+function SampleCard({ template, index, onClick }: SampleCardProps) {
   const visual = sampleVisuals[template.id];
   const Icon = visual.icon;
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
-      className="group flex min-h-24 items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="group overflow-hidden rounded-[1.6rem] border-4 border-white bg-white text-left shadow-soft transition hover:-translate-y-1 hover:shadow-xl"
     >
-      <span className={`rounded-xl p-2 transition group-hover:scale-105 ${visual.className}`}>
-        <Icon size={19} />
+      <div className={`flex h-28 items-center justify-center bg-gradient-to-br ${visual.stage}`}>
+        <span className={`rounded-2xl p-3 shadow-sm transition group-hover:scale-110 ${visual.className}`}>
+          <Icon size={28} />
+        </span>
+      </div>
+      <span className="block p-4">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-display text-xl text-slate-900">{template.name}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-extrabold ${levelStyles[template.level]}`}>
+            {template.level} · {template.ages}
+          </span>
+        </span>
+        <span className="mt-1 block text-sm font-semibold leading-snug text-slate-600">{template.description}</span>
+        <span className="mt-2 inline-flex items-center gap-1 text-sm font-extrabold text-sky-700">
+          <Play size={14} /> Play this
+        </span>
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-black text-slate-900">{template.name}</span>
-        <span className="mt-1 block text-xs font-semibold leading-snug text-slate-500">{template.description}</span>
-      </span>
-    </button>
+    </motion.button>
   );
 }
 
@@ -338,7 +453,7 @@ function LoadingProjects() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" role="status" aria-label="Loading projects">
       {[0, 1, 2].map((item) => (
-        <div key={item} className="animate-pulse overflow-hidden rounded-3xl bg-white shadow-sm">
+        <div key={item} className="animate-pulse overflow-hidden rounded-[1.75rem] bg-white shadow-sm">
           <div className="h-44 bg-slate-200" />
           <div className="space-y-3 p-5">
             <div className="h-6 w-2/3 rounded bg-slate-200" />

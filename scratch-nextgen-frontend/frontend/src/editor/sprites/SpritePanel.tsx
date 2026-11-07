@@ -9,8 +9,9 @@ type SpritePanelProps = {
   activeSpriteId: string;
   onSelectSprite: (spriteId: string) => void;
   onAddSprite: () => void;
-  onDeleteSprite: (spriteId: string) => void;
   onUpdateSprite: (spriteId: string, patch: Partial<Sprite>) => void;
+  onAskDelete: (sprite: Sprite) => void;
+  onError?: (message: string) => void;
 };
 
 export function SpritePanel({
@@ -18,22 +19,26 @@ export function SpritePanel({
   activeSpriteId,
   onSelectSprite,
   onAddSprite,
-  onDeleteSprite,
   onUpdateSprite,
+  onAskDelete,
+  onError,
 }: SpritePanelProps) {
   const activeSprite = project.sprites.find((sprite) => sprite.id === activeSpriteId) ?? project.sprites[0];
 
   return (
     <div className="space-y-4">
       <div>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-black uppercase tracking-wide text-slate-600">Sprites</h2>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div>
+            <h2 className="font-display text-lg text-slate-800">Characters</h2>
+            <p className="text-xs font-bold text-slate-500">Tap one to choose it, then open Code</p>
+          </div>
           <button
             type="button"
             onClick={onAddSprite}
-            className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700"
+            className="inline-flex min-h-12 items-center gap-1 rounded-2xl bg-emerald-500 px-3 py-2 text-sm font-extrabold text-white shadow-sticker transition hover:bg-emerald-600"
           >
-            <Plus size={15} />
+            <Plus size={16} />
             Add
           </button>
         </div>
@@ -46,18 +51,18 @@ export function SpritePanel({
                 type="button"
                 onClick={() => onSelectSprite(sprite.id)}
                 aria-pressed={activeSpriteId === sprite.id}
-                className={`min-h-14 rounded-xl border-2 p-2 text-left transition ${
+                className={`min-h-16 rounded-2xl border-4 p-2 text-left transition ${
                   activeSpriteId === sprite.id
-                    ? 'border-sky-500 bg-sky-50 shadow-sm'
+                    ? 'border-sky-400 bg-sky-50 shadow-sm'
                     : 'border-transparent bg-white hover:border-slate-200'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <img src={costume?.dataUrl} alt="" className="h-10 w-10 rounded object-contain" />
+                  <img src={costume?.dataUrl} alt="" className="h-12 w-12 rounded-xl object-contain" />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-slate-800">{sprite.name}</p>
-                    <p className="text-xs text-slate-500">
-                      x {Math.round(sprite.x)}, y {Math.round(sprite.y)}
+                    <p className="truncate text-sm font-extrabold text-slate-800">{sprite.name}</p>
+                    <p className="text-xs font-bold text-slate-500">
+                      {sprite.visible ? `x ${Math.round(sprite.x)}, y ${Math.round(sprite.y)}` : 'Hidden'}
                     </p>
                   </div>
                 </div>
@@ -68,22 +73,18 @@ export function SpritePanel({
       </div>
 
       {activeSprite ? (
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
+        <div className="space-y-3 rounded-3xl border-2 border-slate-100 bg-white p-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-black text-slate-800">Sprite details</h3>
+            <h3 className="font-display text-lg text-slate-800">{activeSprite.name}</h3>
             <button
               type="button"
               disabled={project.sprites.length <= 1}
-              onClick={() => {
-                if (window.confirm(`Delete ${activeSprite.name}?`)) {
-                  onDeleteSprite(activeSprite.id);
-                }
-              }}
-              className="rounded-xl p-2 text-slate-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
-              title="Delete sprite"
-              aria-label={`Delete ${activeSprite.name}`}
+              onClick={() => onAskDelete(activeSprite)}
+              className="rounded-2xl p-2 text-slate-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+              title="Remove character"
+              aria-label={`Remove ${activeSprite.name}`}
             >
-              <Trash2 size={17} />
+              <Trash2 size={18} />
             </button>
           </div>
           <SpriteEditor sprite={activeSprite} onUpdate={(patch) => onUpdateSprite(activeSprite.id, patch)} />
@@ -91,7 +92,11 @@ export function SpritePanel({
       ) : null}
 
       {activeSprite ? (
-        <AssetManager sprite={activeSprite} onUpdate={(patch) => onUpdateSprite(activeSprite.id, patch)} />
+        <AssetManager
+          sprite={activeSprite}
+          onUpdate={(patch) => onUpdateSprite(activeSprite.id, patch)}
+          onError={onError}
+        />
       ) : null}
     </div>
   );

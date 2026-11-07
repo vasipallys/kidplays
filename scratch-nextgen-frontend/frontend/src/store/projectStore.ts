@@ -13,6 +13,7 @@ import {
   type SampleProjectId,
 } from '../templates/sampleProjects';
 import { createStarterSprite } from '../templates/starterSprites';
+import { friendColors, friendNames } from '../utils/kidPrefs';
 import { clampToStage } from '../editor/stage/stageMath';
 import { createId } from '../utils/ids';
 import { nowIso } from '../utils/time';
@@ -225,7 +226,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   addSprite: () => {
-    const sprite = createStarterSprite(`Sprite ${get().currentProject?.sprites.length ?? 1}`);
+    const used = new Set(get().currentProject?.sprites.map((sprite) => sprite.name) ?? []);
+    const nextName =
+      friendNames.find((name) => !used.has(name)) ?? `Friend ${(get().currentProject?.sprites.length ?? 1) + 1}`;
+    const colorIndex = get().currentProject?.sprites.length ?? 0;
+    const sprite = createStarterSprite(nextName, friendColors[colorIndex % friendColors.length]);
     sprite.x = -120 + Math.round(Math.random() * 240);
     sprite.y = -80 + Math.round(Math.random() * 160);
     get().mutateCurrentProject((project) => {

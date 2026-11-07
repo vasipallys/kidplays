@@ -29,14 +29,15 @@ export function BlocklyWorkspace({
 
     const workspace = Blockly.inject(hostRef.current, {
       toolbox: scratchToolbox as Blockly.utils.toolbox.ToolboxDefinition,
+      media: `${import.meta.env.BASE_URL}blockly-media/`,
       trashcan: true,
       scrollbars: true,
       zoom: {
         controls: true,
         wheel: true,
-        startScale: 0.88,
-        maxScale: 1.5,
-        minScale: 0.55,
+        startScale: 1,
+        maxScale: 1.7,
+        minScale: 0.6,
         scaleSpeed: 1.08,
       },
       move: {
@@ -103,7 +104,7 @@ export function BlocklyWorkspace({
   return (
     <div
       ref={hostRef}
-      className="h-full min-h-[440px] w-full overflow-hidden rounded-2xl sm:min-h-[560px] xl:min-h-0"
+      className="h-full min-h-0 w-full overflow-hidden rounded-3xl"
       aria-label="Block coding workspace"
     />
   );

@@ -10,27 +10,27 @@ type SpriteEditorProps = {
 export function SpriteEditor({ sprite, onUpdate }: SpriteEditorProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
-      <label className="col-span-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+      <label className="col-span-2 text-xs font-extrabold uppercase tracking-wide text-slate-500">
         Name
         <input
           value={sprite.name}
           onChange={(event) => onUpdate({ name: event.target.value })}
           maxLength={40}
-          className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition focus:border-sky-500"
+          className="mt-1 min-h-12 w-full rounded-2xl border-2 border-slate-200 px-3 py-2 text-base font-extrabold text-slate-800 outline-none transition focus:border-sky-500"
         />
       </label>
-      <NumberField label="X" value={sprite.x} min={-240} max={240} onChange={(value) => onUpdate({ x: value })} />
-      <NumberField label="Y" value={sprite.y} min={-180} max={180} onChange={(value) => onUpdate({ y: value })} />
-      <NumberField label="Direction" value={sprite.direction} onChange={(value) => onUpdate({ direction: value })} />
+      <NumberField label="X · left / right" value={sprite.x} min={-240} max={240} onChange={(value) => onUpdate({ x: value })} />
+      <NumberField label="Y · up / down" value={sprite.y} min={-180} max={180} onChange={(value) => onUpdate({ y: value })} />
+      <NumberField label="Turn" value={sprite.direction} onChange={(value) => onUpdate({ direction: value })} />
       <NumberField label="Size %" value={sprite.size} min={5} max={300} onChange={(value) => onUpdate({ size: value })} />
       <button
         type="button"
         onClick={() => onUpdate({ visible: !sprite.visible })}
         aria-pressed={sprite.visible}
-        className="col-span-2 flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
+        className="col-span-2 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-base font-extrabold text-slate-700 transition hover:bg-slate-200"
       >
-        {sprite.visible ? <Eye size={16} /> : <EyeOff size={16} />}
-        {sprite.visible ? 'Visible' : 'Hidden'}
+        {sprite.visible ? <Eye size={18} /> : <EyeOff size={18} />}
+        {sprite.visible ? 'Showing on stage' : 'Hidden — tap to show'}
       </button>
     </div>
   );
@@ -65,7 +65,7 @@ function NumberField({ label, value, min, max, onChange }: NumberFieldProps) {
   };
 
   return (
-    <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+    <label className="text-xs font-extrabold uppercase tracking-wide text-slate-500">
       {label}
       <input
         type="number"
@@ -79,7 +79,7 @@ function NumberField({ label, value, min, max, onChange }: NumberFieldProps) {
             event.currentTarget.blur();
           }
         }}
-        className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition focus:border-sky-500"
+        className="mt-1 min-h-12 w-full rounded-2xl border-2 border-slate-200 px-3 py-2 text-base font-extrabold text-slate-800 outline-none transition focus:border-sky-500"
       />
     </label>
   );

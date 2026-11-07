@@ -37,7 +37,7 @@ export const useRuntimeStore = create<RuntimeState>((set, get) => ({
     set((state) => ({
       status: 'idle',
       runToken: nextToken,
-      logs: [...state.logs, runtimeLine('All scripts stopped safely.')].slice(-60),
+      logs: [...state.logs, runtimeLine('Stopped. Press Play to try again.')].slice(-60),
     }));
     return nextToken;
   },
