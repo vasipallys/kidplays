@@ -75,7 +75,31 @@ export function BlocklyWorkspace({
       onChange(Blockly.Xml.domToText(dom));
     };
 
+    let dragStartedInFlyout = false;
+
     const listener = (event: Blockly.Events.Abstract) => {
+      if (event.type === Blockly.Events.BLOCK_DRAG) {
+        const drag = event as Blockly.Events.BlockDrag;
+        const flyout = workspace.getToolbox()?.getFlyout();
+        if (drag.isStart) {
+          const flyoutWorkspace = flyout?.getWorkspace();
+          dragStartedInFlyout = Boolean(drag.blockId && flyoutWorkspace?.getBlockById(drag.blockId));
+          return;
+        }
+
+        // The tray width sticks in the middle after a drop. Close it and
+        // put the scroll bars back where the blocks actually are.
+        if (dragStartedInFlyout) {
+          dragStartedInFlyout = false;
+          workspace.getToolbox()?.clearSelection();
+          flyout?.hide();
+        }
+        flyout?.reflow();
+        workspace.scrollbar?.resize();
+        Blockly.svgResize(workspace);
+        return;
+      }
+
       if (event.isUiEvent) {
         const selectedType = (Blockly.Events as any).SELECTED;
         if ((event as any).type === selectedType) {
@@ -120,11 +144,7 @@ export function BlocklyWorkspace({
   return (
     <div
       ref={hostRef}
-<<<<<<< HEAD
-      className={`h-full min-h-[440px] w-full overflow-hidden rounded-2xl sm:min-h-[560px] xl:min-h-0 ${showToolbox ? '' : 'hide-block-menu'}`}
-=======
-      className="h-full min-h-0 w-full overflow-hidden rounded-3xl"
->>>>>>> d974eb40138a060b605b9d4d9658a9e6385fdc4b
+      className={`h-full min-h-0 w-full overflow-hidden rounded-3xl ${showToolbox ? '' : 'hide-block-menu'}`}
       aria-label="Block coding workspace"
     />
   );

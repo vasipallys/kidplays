@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
-<<<<<<< HEAD
 const STORAGE_KEY = 'kidplays-editor-docks';
 
+export type EditorTab = 'code' | 'stage' | 'cast';
 export type DockKey = 'blocksMenu' | 'stageDock' | 'toolsMenu' | 'sprites' | 'buddy' | 'logs';
 
 type Docks = Record<DockKey, boolean>;
@@ -14,17 +14,6 @@ const defaultDocks: Docks = {
   sprites: true,
   buddy: true,
   logs: true,
-=======
-export type EditorTab = 'code' | 'stage' | 'cast';
-
-type UiState = {
-  isCodeBuddyOpen: boolean;
-  selectedBlockType?: string;
-  editorTab: EditorTab;
-  setCodeBuddyOpen: (open: boolean) => void;
-  setSelectedBlockType: (blockType?: string) => void;
-  setEditorTab: (tab: EditorTab) => void;
->>>>>>> d974eb40138a060b605b9d4d9658a9e6385fdc4b
 };
 
 function loadDocks(): Docks {
@@ -49,25 +38,22 @@ function saveDocks(docks: Docks) {
 
 type UiState = {
   selectedBlockType?: string;
+  editorTab: EditorTab;
   docks: Docks;
   setSelectedBlockType: (blockType?: string) => void;
+  setEditorTab: (tab: EditorTab) => void;
   setDock: (key: DockKey, open: boolean) => void;
 };
 
 export const useUiStore = create<UiState>((set, get) => ({
   selectedBlockType: undefined,
-<<<<<<< HEAD
+  editorTab: 'code',
   docks: loadDocks(),
   setSelectedBlockType: (blockType) => set({ selectedBlockType: blockType }),
+  setEditorTab: (tab) => set({ editorTab: tab }),
   setDock: (key, open) => {
     const docks = { ...get().docks, [key]: open };
     saveDocks(docks);
     set({ docks });
   },
-=======
-  editorTab: 'code',
-  setCodeBuddyOpen: (open) => set({ isCodeBuddyOpen: open }),
-  setSelectedBlockType: (blockType) => set({ selectedBlockType: blockType }),
-  setEditorTab: (tab) => set({ editorTab: tab }),
->>>>>>> d974eb40138a060b605b9d4d9658a9e6385fdc4b
 }));
