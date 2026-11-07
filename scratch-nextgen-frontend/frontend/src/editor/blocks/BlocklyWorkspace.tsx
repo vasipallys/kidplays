@@ -6,6 +6,7 @@ import { defaultBlocksXml, scratchToolbox } from './toolbox';
 type BlocklyWorkspaceProps = {
   spriteId: string;
   blocksXml?: string;
+  showToolbox?: boolean;
   onChange: (xml: string) => void;
   onSelectBlock?: (blockType?: string) => void;
 };
@@ -13,12 +14,16 @@ type BlocklyWorkspaceProps = {
 export function BlocklyWorkspace({
   spriteId,
   blocksXml,
+  showToolbox = true,
   onChange,
   onSelectBlock,
 }: BlocklyWorkspaceProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const timeoutRef = useRef<number>();
   const hasPendingChangeRef = useRef(false);
+  const showToolboxRef = useRef(showToolbox);
+  showToolboxRef.current = showToolbox;
 
   useEffect(() => {
     registerScratchBlocks();
@@ -85,7 +90,8 @@ export function BlocklyWorkspace({
     };
 
     workspace.addChangeListener(listener);
-    Blockly.svgResize(workspace);
+    workspaceRef.current = workspace;
+    applyToolboxVisibility(hostRef.current, workspace, showToolboxRef.current);
     const resizeObserver = new ResizeObserver(() => Blockly.svgResize(workspace));
     resizeObserver.observe(hostRef.current);
 
@@ -97,14 +103,32 @@ export function BlocklyWorkspace({
       resizeObserver.disconnect();
       workspace.removeChangeListener(listener);
       workspace.dispose();
+      workspaceRef.current = null;
     };
   }, [spriteId]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    const workspace = workspaceRef.current;
+    if (!host || !workspace) {
+      return;
+    }
+    applyToolboxVisibility(host, workspace, showToolbox);
+  }, [showToolbox]);
 
   return (
     <div
       ref={hostRef}
-      className="h-full min-h-[440px] w-full overflow-hidden rounded-2xl sm:min-h-[560px] xl:min-h-0"
+      className={`h-full min-h-[440px] w-full overflow-hidden rounded-2xl sm:min-h-[560px] xl:min-h-0 ${showToolbox ? '' : 'hide-block-menu'}`}
       aria-label="Block coding workspace"
     />
   );
+}
+
+function applyToolboxVisibility(host: HTMLElement, workspace: Blockly.WorkspaceSvg, visible: boolean) {
+  host.classList.toggle('hide-block-menu', !visible);
+  if (!visible) {
+    workspace.getToolbox()?.getFlyout()?.setVisible(false);
+  }
+  Blockly.svgResize(workspace);
 }

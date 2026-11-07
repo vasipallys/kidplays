@@ -52,6 +52,11 @@ textarea:focus-visible,
   border-right: 1px solid #dbeafe;
 }
 
+.hide-block-menu .blocklyToolboxDiv,
+.hide-block-menu .blocklyFlyout {
+  display: none !important;
+}
+
 .blocklyFlyout {
   border-radius: 0 16px 16px 0;
 }
