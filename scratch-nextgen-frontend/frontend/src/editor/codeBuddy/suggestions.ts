@@ -1,14 +1,14 @@
 export const starterSuggestions = [
-  'Try adding a green flag block first.',
-  'Add a Move block under the green flag.',
-  'Use Say to make your sprite talk.',
-  'Put Move inside Repeat to make an animation.',
+  'Start with a yellow Events block that says when green flag clicked.',
+  'Snap a blue Move block underneath so your character walks.',
+  'Add a purple Say block to make your character talk.',
+  'Put Move inside Repeat to make a dance.',
 ];
 
 export const categoryNextSteps: Record<string, string> = {
-  event: 'Events are starters. Add a Motion or Looks block under it.',
-  motion: 'Motion is more fun with Repeat or Wait blocks.',
-  looks: 'Looks blocks pair nicely with Wait and Motion.',
-  control: 'Control blocks can hold Motion and Looks blocks inside.',
-  sound: 'Try adding a Wait block after a sound.',
+  event: 'Nice start! Snap a blue Motion or purple Looks block under this one.',
+  motion: 'Try wrapping this in an orange Repeat block to make an animation.',
+  looks: 'Add Wait after a Say block so people have time to read it.',
+  control: 'Drop Motion or Looks blocks inside this loop.',
+  sound: 'Add Wait after a sound so the next block does not rush.',
 };

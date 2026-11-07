@@ -1,33 +1,33 @@
 const blockHelp: Record<string, string> = {
-  event_when_green_flag: 'This block starts your story or game when you click the green flag.',
-  event_when_sprite_clicked: 'This starts a script when you click the sprite on the stage.',
-  event_when_key_pressed: 'This starts a script when a key is pressed.',
-  motion_move_steps: 'Move steps changes where your sprite is standing.',
-  motion_turn_degrees: 'Turn degrees spins your sprite.',
-  motion_goto_xy: 'Go to x y teleports your sprite to a spot on the stage.',
-  motion_change_x: 'Change x moves your sprite sideways.',
-  motion_change_y: 'Change y moves your sprite up or down.',
-  motion_set_x: 'Set x places your sprite at a horizontal position.',
-  motion_set_y: 'Set y places your sprite at a vertical position.',
-  motion_point_direction: 'Point in direction chooses which way your sprite faces.',
-  motion_if_edge_bounce: 'This helps your sprite bounce when it touches the edge.',
+  event_when_green_flag: 'This starts your project when you press the green Play button.',
+  event_when_sprite_clicked: 'This starts when you click this character on the stage.',
+  event_when_key_pressed: 'This starts when you press a key on the keyboard.',
+  motion_move_steps: 'Move steps walks your character forward.',
+  motion_turn_degrees: 'Turn spins your character.',
+  motion_goto_xy: 'Go to x y jumps to a spot on the stage. 0, 0 is the middle.',
+  motion_change_x: 'Change x slides your character left or right.',
+  motion_change_y: 'Change y slides your character up or down.',
+  motion_set_x: 'Set x parks your character on a left-right spot.',
+  motion_set_y: 'Set y parks your character on an up-down spot.',
+  motion_point_direction: 'Point in direction chooses which way your character faces.',
+  motion_if_edge_bounce: 'If on edge, bounce keeps your character on the stage.',
   looks_say_seconds: 'Say shows a speech bubble for a little while.',
   looks_think_seconds: 'Think shows a thought bubble for a little while.',
-  looks_show: 'Show makes an invisible sprite appear again.',
-  looks_hide: 'Hide makes the sprite invisible.',
-  looks_change_size: 'Change size makes your sprite a little bigger or smaller.',
-  looks_set_size: 'Set size chooses an exact size for your sprite.',
-  control_wait: 'Wait lets your sprite pause before doing the next block.',
-  control_repeat: 'Repeat runs the blocks inside again and again.',
-  control_forever: 'Forever keeps running until you click stop.',
-  sound_play: 'Play sound starts a local sound from this sprite.',
-  sound_stop_all: 'Stop all sounds immediately quiets every playing sound.',
+  looks_show: 'Show makes a hidden character appear again.',
+  looks_hide: 'Hide makes the character invisible.',
+  looks_change_size: 'Change size makes your character a little bigger or smaller.',
+  looks_set_size: 'Set size chooses an exact size.',
+  control_wait: 'Wait pauses before the next block.',
+  control_repeat: 'Repeat plays the blocks inside again and again. Great for dances.',
+  control_forever: 'Forever keeps going until you press Stop.',
+  sound_play: 'Play sound starts a sound you added to this character.',
+  sound_stop_all: 'Stop all sounds quiets everything right away.',
 };
 
 export function explainBlock(blockType?: string): string {
   if (!blockType) {
-    return 'Click a block to learn what it does.';
+    return 'Tap a block to learn what it does. Yellow starts, blue moves, purple talks, orange repeats.';
   }
 
-  return blockHelp[blockType] ?? 'This block is ready for experimenting.';
+  return blockHelp[blockType] ?? 'Try this block and press Play to see what it does.';
 }

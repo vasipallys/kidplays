@@ -6,7 +6,7 @@ export const defaultBlocksXml = `
         <field name="STEPS">80</field>
         <next>
           <block type="looks_say_seconds">
-            <field name="MESSAGE">Hello, world!</field>
+            <field name="MESSAGE">Hello!</field>
             <field name="SECONDS">2</field>
           </block>
         </next>
@@ -21,7 +21,7 @@ export const scratchToolbox = {
   contents: [
     {
       kind: 'category',
-      name: 'Events',
+      name: '⚑ Events',
       colour: '#F59E0B',
       contents: [
         { kind: 'block', type: 'event_when_green_flag' },
@@ -69,7 +69,7 @@ export const scratchToolbox = {
     },
     {
       kind: 'category',
-      name: 'Control',
+      name: 'Loops',
       colour: '#EA580C',
       contents: [
         { kind: 'block', type: 'control_wait' },
@@ -81,7 +81,7 @@ export const scratchToolbox = {
       kind: 'category',
       name: 'Sensing',
       colour: '#0891B2',
-      contents: [{ kind: 'label', text: 'Keyboard and sprite-click events are ready.' }],
+      contents: [{ kind: 'label', text: 'Click a character or press a key to start a script.' }],
     },
     {
       kind: 'category',
@@ -91,18 +91,18 @@ export const scratchToolbox = {
     },
     {
       kind: 'category',
-      name: 'Custom',
+      name: 'Ideas',
       colour: '#64748B',
-      contents: [{ kind: 'label', text: 'Make your own block ideas here.' }],
+      contents: [{ kind: 'label', text: 'Try mixing Event + Motion + Repeat for a dance.' }],
     },
   ],
 };
 
 export const paletteCategories = [
-  { name: 'Events', color: 'bg-amber-400', hint: 'Start scripts with green flag, keys, or clicks.' },
-  { name: 'Motion', color: 'bg-blue-500', hint: 'Move, turn, and bounce sprites.' },
-  { name: 'Looks', color: 'bg-violet-500', hint: 'Say, think, hide, show, and resize.' },
-  { name: 'Sound', color: 'bg-pink-500', hint: 'Play local sounds safely.' },
-  { name: 'Control', color: 'bg-orange-500', hint: 'Wait, repeat, and loop actions.' },
-  { name: 'Variables', color: 'bg-amber-600', hint: 'Remember numbers, words, and true/false values.' },
+  { name: 'Events', color: 'bg-amber-400', hint: 'Start with the green flag, a click, or a key.' },
+  { name: 'Motion', color: 'bg-blue-500', hint: 'Move, turn, and bounce your characters.' },
+  { name: 'Looks', color: 'bg-violet-500', hint: 'Talk, think, hide, show, and grow.' },
+  { name: 'Sound', color: 'bg-pink-500', hint: 'Play sounds you added from this computer.' },
+  { name: 'Loops', color: 'bg-orange-500', hint: 'Wait, repeat, and keep going forever.' },
+  { name: 'Variables', color: 'bg-amber-600', hint: 'Remember numbers, words, and yes/no values.' },
 ];

@@ -16,14 +16,14 @@ export function downloadProjectJson(project: Project): void {
 
 export async function readProjectFile(file: File): Promise<Project> {
   if (!file.name.toLowerCase().endsWith('.json')) {
-    throw new Error('Please choose a JSON project file.');
+    throw new Error('Please choose a Scratch NextGen project file (.json).');
   }
 
   const text = await file.text();
   const value = JSON.parse(text) as Partial<Project>;
 
   if (!value.name || !Array.isArray(value.sprites)) {
-    throw new Error('That file does not look like a Scratch NextGen project.');
+    throw new Error('That file does not look like a Scratch NextGen project. Try a file you downloaded from this app.');
   }
 
   const now = nowIso();
