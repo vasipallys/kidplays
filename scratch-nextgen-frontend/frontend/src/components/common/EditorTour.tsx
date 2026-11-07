@@ -15,17 +15,17 @@ export function EditorTour({ open, onClose }: EditorTourProps) {
       </div>
       <ol className="mt-4 space-y-3 text-base font-bold text-slate-700">
         <li className="rounded-2xl bg-amber-50 px-4 py-3">
-          1. Drag a yellow <span className="text-amber-700">Events</span> block, then snap more blocks under it.
+          1. Stay on the <span className="text-sky-700">Code</span> tab. Drag a yellow Events block from the left menu.
         </li>
         <li className="rounded-2xl bg-emerald-50 px-4 py-3">
           2. Press the big green <span className="text-emerald-700">Play</span> button.
         </li>
         <li className="rounded-2xl bg-sky-50 px-4 py-3">
-          3. Watch the stage. Click a character or press a key if your project uses those.
+          3. Watch the <span className="text-sky-700">stage</span> on the right. It stays there. Click a character if you want.
         </li>
       </ol>
       <p className="mt-4 text-sm font-semibold text-slate-500">
-        On a phone or tablet, use the Code, Stage, and Characters buttons at the bottom.
+        Code, Looks, and Sounds are tabs at the top. Characters sit under the stage. On a phone, use the buttons at the bottom.
       </p>
       <div className="mt-6">
         <Button tone="play" className="w-full" onClick={onClose}>

@@ -4,8 +4,8 @@ import {
   Blocks,
   Flag,
   HelpCircle,
-  Keyboard,
-  MousePointer2,
+  ImagePlus,
+  Music,
   RotateCcw,
   Save,
   Square,
@@ -16,8 +16,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BlocklyWorkspace } from '../editor/blocks/BlocklyWorkspace';
 import { StageCanvas } from '../editor/stage/StageCanvas';
 import { SpritePanel } from '../editor/sprites/SpritePanel';
+import { CharacterDock } from '../editor/sprites/CharacterDock';
 import { CodeBuddyPanel } from '../editor/codeBuddy/CodeBuddyPanel';
 import { ActivityLog } from '../editor/runtime/ActivityLog';
+import { AssetManager } from '../editor/assets/AssetManager';
 import {
   startGreenFlagRun,
   startKeyRun,
@@ -32,7 +34,7 @@ import { EditorTour } from '../components/common/EditorTour';
 import { Mascot } from '../components/common/Mascot';
 import { useProjectStore } from '../store/projectStore';
 import { useRuntimeStore } from '../store/runtimeStore';
-import { useUiStore, type EditorTab } from '../store/uiStore';
+import { useUiStore, type EditorTab, type WorkspacePane } from '../store/uiStore';
 import { hasSeenEditorTour, markEditorTourSeen } from '../utils/kidPrefs';
 import type { Sprite } from '../types/sprite';
 
@@ -53,7 +55,8 @@ export function EditorPage() {
     resetRuntimeState,
   } = useProjectStore();
   const { status, logs } = useRuntimeStore();
-  const { selectedBlockType, setSelectedBlockType, editorTab, setEditorTab } = useUiStore();
+  const { selectedBlockType, setSelectedBlockType, editorTab, setEditorTab, workspacePane, setWorkspacePane } =
+    useUiStore();
   const [howToOpen, setHowToOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -78,10 +81,11 @@ export function EditorPage() {
 
   useEffect(() => {
     setEditorTab('code');
+    setWorkspacePane('code');
     if (!hasSeenEditorTour()) {
       setTourOpen(true);
     }
-  }, [projectId, setEditorTab]);
+  }, [projectId, setEditorTab, setWorkspacePane]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -132,6 +136,11 @@ export function EditorPage() {
   const stopProject = () => stopAllScripts();
   const updateActiveSprite = (spriteId: string, patch: Partial<Sprite>) => updateSprite(spriteId, patch);
 
+  const openWorkspace = (pane: WorkspacePane) => {
+    setWorkspacePane(pane);
+    setEditorTab('code');
+  };
+
   const commitName = () => {
     const next = nameDraft.trim();
     setEditingName(false);
@@ -140,12 +149,44 @@ export function EditorPage() {
     }
   };
 
+  const playControls = (
+    <>
+      <Button tone="play" icon={<Flag size={20} />} onClick={runProject} disabled={status === 'running'} className="min-h-12 px-4 text-lg">
+        Play
+      </Button>
+      <Button tone="stop" icon={<Square size={18} />} onClick={stopProject} disabled={status !== 'running'} className="min-h-12 px-4 text-lg">
+        Stop
+      </Button>
+      <Button
+        tone="sun"
+        icon={<RotateCcw size={18} />}
+        onClick={() => {
+          if (status === 'running') {
+            stopProject();
+          }
+          resetRuntimeState();
+        }}
+        className="min-h-12"
+      >
+        Reset
+      </Button>
+      <Button
+        tone="secondary"
+        icon={<Save size={18} />}
+        onClick={() => void saveCurrentProject().catch(() => setNotice('Could not save this project.'))}
+        className="min-h-12"
+      >
+        Save
+      </Button>
+    </>
+  );
+
   return (
     <main className="flex h-dvh flex-col overflow-hidden">
-      <header className="shrink-0 z-20 border-b-4 border-white bg-white/95 px-3 py-3 shadow-sm backdrop-blur sm:px-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <header className="z-20 shrink-0 border-b-4 border-white bg-white/95 px-3 py-2 shadow-sm backdrop-blur sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <IconButton label="Back to my projects" icon={<ArrowLeft size={22} />} onClick={() => navigate('/')} />
-          <div className="min-w-0 flex-1 basis-[160px]">
+          <div className="min-w-0 flex-1">
             {editingName ? (
               <form
                 onSubmit={(event: FormEvent) => {
@@ -180,92 +221,103 @@ export function EditorPage() {
               {storageError ?? 'Saved on this device'}
             </p>
           </div>
+          <div className="hidden items-center gap-2 xl:flex">{playControls}</div>
           <IconButton label="How to play" icon={<HelpCircle size={22} />} onClick={() => setHowToOpen(true)} />
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Button tone="play" icon={<Flag size={20} />} onClick={runProject} disabled={status === 'running'} className="min-h-14 text-lg">
-            Play
-          </Button>
-          <Button tone="stop" icon={<Square size={18} />} onClick={stopProject} disabled={status !== 'running'} className="min-h-14 text-lg">
-            Stop
-          </Button>
-          <Button
-            tone="sun"
-            icon={<RotateCcw size={18} />}
-            onClick={() => {
-              if (status === 'running') {
-                stopProject();
-              }
-              resetRuntimeState();
-            }}
-            className="min-h-14"
-          >
-            Reset
-          </Button>
-          <Button
-            tone="secondary"
-            icon={<Save size={18} />}
-            onClick={() => void saveCurrentProject().catch(() => setNotice('Could not save this project.'))}
-            className="min-h-14"
-          >
-            Save
-          </Button>
-        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2 xl:hidden">{playControls}</div>
       </header>
 
       {notice ? (
-        <div className="mx-3 mt-3 rounded-2xl bg-rose-50 px-4 py-3 font-bold text-rose-800" role="alert">
+        <div className="mx-3 mt-2 rounded-2xl bg-rose-50 px-4 py-3 font-bold text-rose-800" role="alert">
           {notice}
         </div>
       ) : null}
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden p-2 sm:p-3 xl:grid-cols-[minmax(560px,1fr)_400px]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden p-2 sm:p-3 xl:grid-cols-[minmax(520px,1fr)_380px]">
         <section
           className={`${
             editorTab === 'code' ? 'flex' : 'hidden'
           } min-h-0 flex-col overflow-hidden rounded-3xl border-4 border-white bg-white shadow-soft xl:flex`}
         >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="rounded-2xl bg-sky-100 p-2 text-sky-700">
-                <Blocks size={18} />
-              </span>
-              <div>
-                <h2 className="font-display text-lg text-slate-900">Code for {activeSprite.name}</h2>
-                <p className="text-xs font-bold text-slate-500">Drag from the colored list, then snap blocks together.</p>
-              </div>
+          <nav className="grid shrink-0 grid-cols-3 gap-1 border-b-4 border-sky-50 bg-sky-50/80 p-2" aria-label="Code looks and sounds">
+            <WorkspaceTab
+              pane="code"
+              current={workspacePane}
+              label="Code"
+              hint="Blocks"
+              icon={<Blocks size={18} />}
+              onClick={openWorkspace}
+            />
+            <WorkspaceTab
+              pane="looks"
+              current={workspacePane}
+              label="Looks"
+              hint="Pictures"
+              icon={<ImagePlus size={18} />}
+              onClick={openWorkspace}
+            />
+            <WorkspaceTab
+              pane="sounds"
+              current={workspacePane}
+              label="Sounds"
+              hint="Music"
+              icon={<Music size={18} />}
+              onClick={openWorkspace}
+            />
+          </nav>
+
+          <div className={`${workspacePane === 'code' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col`}>
+            <div className="px-4 py-2">
+              <h2 className="font-display text-lg text-slate-900">Code for {activeSprite.name}</h2>
+              <p className="text-xs font-bold text-slate-500">The colored menu on the left is your block list. Drag one out, then snap it on.</p>
             </div>
-            <div className="hidden items-center gap-3 text-xs font-extrabold text-slate-500 md:flex">
-              <span className="inline-flex items-center gap-1">
-                <MousePointer2 size={14} /> Click characters
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Keyboard size={14} /> Try keys
-              </span>
+            <div className="min-h-0 flex-1 p-2 pt-0">
+              <BlocklyWorkspace
+                key={activeSprite.id}
+                spriteId={activeSprite.id}
+                blocksXml={activeSprite.blocksXml}
+                onChange={(xml) => setSpriteBlocks(activeSprite.id, xml)}
+                onSelectBlock={setSelectedBlockType}
+              />
             </div>
           </div>
-          <div className="min-h-0 flex-1 p-2">
-            <BlocklyWorkspace
-              key={activeSprite.id}
-              spriteId={activeSprite.id}
-              blocksXml={activeSprite.blocksXml}
-              onChange={(xml) => setSpriteBlocks(activeSprite.id, xml)}
-              onSelectBlock={setSelectedBlockType}
+
+          <div className={`${workspacePane === 'looks' ? 'block' : 'hidden'} min-h-0 flex-1 overflow-y-auto p-4`}>
+            <h2 className="font-display text-xl text-slate-900">Looks for {activeSprite.name}</h2>
+            <p className="mb-4 text-sm font-bold text-slate-500">Pick a picture. That is how this character looks on the stage.</p>
+            <AssetManager
+              sprite={activeSprite}
+              onUpdate={(patch) => updateActiveSprite(activeSprite.id, patch)}
+              onError={setNotice}
+              showLooks
+              showSounds={false}
+            />
+          </div>
+
+          <div className={`${workspacePane === 'sounds' ? 'block' : 'hidden'} min-h-0 flex-1 overflow-y-auto p-4`}>
+            <h2 className="font-display text-xl text-slate-900">Sounds for {activeSprite.name}</h2>
+            <p className="mb-4 text-sm font-bold text-slate-500">Add a sound, then use a pink Play sound block in Code.</p>
+            <AssetManager
+              sprite={activeSprite}
+              onUpdate={(patch) => updateActiveSprite(activeSprite.id, patch)}
+              onError={setNotice}
+              showLooks={false}
+              showSounds
             />
           </div>
         </section>
 
         <aside
           className={`${
-            editorTab === 'code' ? 'hidden' : 'block'
-          } min-h-0 overflow-y-auto rounded-3xl border-4 border-white bg-white/80 p-3 shadow-soft xl:block`}
+            editorTab === 'code' ? 'hidden' : 'flex'
+          } min-h-0 flex-col overflow-hidden rounded-3xl border-4 border-white bg-white/90 shadow-soft xl:flex`}
         >
-          <div className={`${editorTab === 'stage' ? 'block' : 'hidden'} xl:block`}>
-            <section>
+          <div className={`${editorTab === 'stage' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col xl:flex`}>
+            <div className="shrink-0 p-3 pb-2">
               <div className="mb-2 flex items-center justify-between">
                 <div>
                   <h2 className="font-display text-lg text-slate-800">The stage</h2>
-                  <p className="text-xs font-bold text-slate-500">This is the movie screen. Click a character!</p>
+                  <p className="text-xs font-bold text-slate-500">Always here. Click a character!</p>
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-extrabold ${
@@ -286,18 +338,41 @@ export function EditorPage() {
                   onSpriteClick={(spriteId) => startSpriteClickRun(currentProject, spriteId)}
                 />
               </div>
-            </section>
+            </div>
+
+            <div className="hidden shrink-0 border-t border-slate-100 px-3 py-2 xl:block">
+              <CharacterDock
+                project={currentProject}
+                activeSpriteId={activeSprite.id}
+                onSelectSprite={selectSprite}
+                onAddSprite={addSprite}
+                onAskDelete={() => setSpriteToDelete(activeSprite)}
+              />
+            </div>
+
+            <div className="hidden min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-3 xl:block">
+              <CodeBuddyPanel
+                project={currentProject}
+                spriteId={activeSprite.id}
+                selectedBlockType={selectedBlockType}
+                compact
+              />
+              <ActivityLog lines={logs} />
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 xl:hidden">
+              <div className="mt-2">
+                <CodeBuddyPanel
+                  project={currentProject}
+                  spriteId={activeSprite.id}
+                  selectedBlockType={selectedBlockType}
+                  compact
+                />
+              </div>
+            </div>
           </div>
 
-          <div className={`${editorTab === 'stage' ? 'mt-4 block' : 'hidden'} xl:mt-4 xl:block`}>
-            <CodeBuddyPanel
-              project={currentProject}
-              spriteId={activeSprite.id}
-              selectedBlockType={selectedBlockType}
-            />
-          </div>
-
-          <div className={`${editorTab === 'cast' ? 'mt-0 block space-y-4' : 'hidden'} xl:mt-4 xl:block xl:space-y-4`}>
+          <div className={`${editorTab === 'cast' ? 'block' : 'hidden'} min-h-0 flex-1 overflow-y-auto p-3 xl:hidden`}>
             <SpritePanel
               project={currentProject}
               activeSpriteId={activeSprite.id}
@@ -305,9 +380,7 @@ export function EditorPage() {
               onAddSprite={addSprite}
               onUpdateSprite={updateActiveSprite}
               onAskDelete={setSpriteToDelete}
-              onError={setNotice}
             />
-            <ActivityLog lines={logs} />
           </div>
         </aside>
       </div>
@@ -345,6 +418,42 @@ export function EditorPage() {
         }}
       />
     </main>
+  );
+}
+
+function WorkspaceTab({
+  pane,
+  current,
+  label,
+  hint,
+  icon,
+  onClick,
+}: {
+  pane: WorkspacePane;
+  current: WorkspacePane;
+  label: string;
+  hint: string;
+  icon: ReactNode;
+  onClick: (pane: WorkspacePane) => void;
+}) {
+  const active = current === pane;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(pane)}
+      aria-current={active ? 'page' : undefined}
+      className={`flex min-h-12 items-center justify-center gap-2 rounded-2xl border-2 px-2 text-sm font-extrabold transition ${
+        active
+          ? 'border-white bg-white text-sky-700 shadow-sticker'
+          : 'border-transparent bg-white/70 text-slate-600 hover:border-white hover:bg-white'
+      }`}
+    >
+      {icon}
+      <span className="text-left leading-tight">
+        <span className="block">{label}</span>
+        <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">{hint}</span>
+      </span>
+    </button>
   );
 }
 

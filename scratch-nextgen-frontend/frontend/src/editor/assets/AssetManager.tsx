@@ -7,9 +7,17 @@ type AssetManagerProps = {
   sprite: Sprite;
   onUpdate: (patch: Partial<Sprite>) => void;
   onError?: (message: string) => void;
+  showLooks?: boolean;
+  showSounds?: boolean;
 };
 
-export function AssetManager({ sprite, onUpdate, onError }: AssetManagerProps) {
+export function AssetManager({
+  sprite,
+  onUpdate,
+  onError,
+  showLooks = true,
+  showSounds = true,
+}: AssetManagerProps) {
   const showError = (message: string) => {
     onError?.(message);
     if (!onError) {
@@ -75,37 +83,18 @@ export function AssetManager({ sprite, onUpdate, onError }: AssetManagerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-sm font-extrabold text-white shadow-sticker transition hover:bg-sky-600 focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-sky-400/40">
-          <ImagePlus size={18} />
-          Add a look
-          <input
-            className="sr-only"
-            type="file"
-            accept=".png,.jpg,.jpeg,.svg,.webp"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              void addCostume(file);
-            }}
-          />
-        </label>
-        <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-pink-500 px-3 py-2 text-sm font-extrabold text-white shadow-sticker transition hover:bg-pink-600 focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-pink-400/40">
-          <Music size={18} />
-          Add a sound
-          <input
-            className="sr-only"
-            type="file"
-            accept=".mp3,.wav,.ogg"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              void addSound(file);
-            }}
-          />
-        </label>
-      </div>
+      {showLooks && showSounds ? (
+        <div className="grid grid-cols-2 gap-2">
+          <AddLookButton onFile={(file) => void addCostume(file)} />
+          <AddSoundButton onFile={(file) => void addSound(file)} />
+        </div>
+      ) : showLooks ? (
+        <AddLookButton onFile={(file) => void addCostume(file)} />
+      ) : (
+        <AddSoundButton onFile={(file) => void addSound(file)} />
+      )}
 
+      {showLooks ? (
       <div className="rounded-3xl border-2 border-slate-100 bg-white p-3">
         <div className="mb-2 text-sm font-extrabold text-slate-700">Looks</div>
         <div className="grid grid-cols-3 gap-2">
@@ -138,7 +127,9 @@ export function AssetManager({ sprite, onUpdate, onError }: AssetManagerProps) {
           ))}
         </div>
       </div>
+      ) : null}
 
+      {showSounds ? (
       <div className="rounded-3xl border-2 border-slate-100 bg-white p-3">
         <div className="mb-2 text-sm font-extrabold text-slate-700">Sounds</div>
         {sprite.sounds.length === 0 ? (
@@ -161,6 +152,45 @@ export function AssetManager({ sprite, onUpdate, onError }: AssetManagerProps) {
           </div>
         )}
       </div>
+      ) : null}
     </div>
+  );
+}
+
+function AddLookButton({ onFile }: { onFile: (file?: File) => void }) {
+  return (
+    <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-sky-500 px-3 py-2 text-sm font-extrabold text-white shadow-sticker transition hover:bg-sky-600 focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-sky-400/40">
+      <ImagePlus size={18} />
+      Add a look
+      <input
+        className="sr-only"
+        type="file"
+        accept=".png,.jpg,.jpeg,.svg,.webp"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          onFile(file);
+        }}
+      />
+    </label>
+  );
+}
+
+function AddSoundButton({ onFile }: { onFile: (file?: File) => void }) {
+  return (
+    <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-pink-500 px-3 py-2 text-sm font-extrabold text-white shadow-sticker transition hover:bg-pink-600 focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-pink-400/40">
+      <Music size={18} />
+      Add a sound
+      <input
+        className="sr-only"
+        type="file"
+        accept=".mp3,.wav,.ogg"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          onFile(file);
+        }}
+      />
+    </label>
   );
 }

@@ -69,6 +69,7 @@ The runtime does **not** execute Blockly or generated JavaScript. Instead:
 - Dialogs: `src/components/ui/Modal.tsx`, `NameDialog.tsx`, `ConfirmDialog.tsx`. **Do not reintroduce `window.prompt` / `window.confirm` for create, rename, or delete.**
 - How-to: `HowToModal.tsx` (home + `?` button). First editor visit: `EditorTour.tsx`. Flags live in `src/utils/kidPrefs.ts` (`sng-welcome-v1`, `sng-editor-tour-v1`).
 - Phone/tablet tabs: `editorTab` in `src/store/uiStore.ts` (`code` | `stage` | `cast`). Pressing Play on a narrow viewport should switch to `stage`.
+- Desktop workspace tabs: `workspacePane` (`code` | `looks` | `sounds`). Keep the stage and character dock visible; do not put costumes, sounds, and logs in one scrolling column with the stage.
 - Buddy is **rule-based**, not AI: `src/editor/codeBuddy/` plus mascot `src/components/common/Mascot.tsx`.
 - Samples: `src/templates/sampleProjects.ts` (level / ages / skill metadata for the home cards).
 - Blockly media: `frontend/public/blockly-media/`. Keep `Blockly.inject({ media })` pointed at `${import.meta.env.BASE_URL}blockly-media/`.

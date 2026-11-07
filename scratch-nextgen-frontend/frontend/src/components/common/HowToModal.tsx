@@ -17,7 +17,7 @@ const steps = [
   {
     icon: Blocks,
     title: 'Snap blocks like stickers',
-    body: 'Yellow blocks start the story. Blue blocks move. Purple blocks talk. Orange blocks repeat.',
+    body: 'Use the Code tab. Yellow blocks start the story. Blue moves. Purple talks. Orange repeats. Looks and Sounds have their own tabs.',
   },
   {
     icon: Flag,
